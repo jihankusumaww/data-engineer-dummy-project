@@ -1,80 +1,189 @@
-# Portofolio Data Engineer
+```markdown
 
-Lima project data engineering dan analytics engineering yang dirancang untuk
-menunjukkan konsep nyata: ETL, star schema, data quality, incremental
-processing, dbt modeling, orchestration, observability, dan testing.
-
-## Daftar Project
-
-### 1. [E-Commerce Sales ETL Pipeline](./01-ecommerce-etl-pipeline)
-Pipeline batch klasik: membersihkan data transaksi yang "kotor" (duplikat,
-format tanggal campuran, nilai kosong) dan memuatnya ke data warehouse
-dengan **star schema**, lalu divisualisasikan lewat **dashboard Streamlit**
-(revenue per kategori, tren harian, top customer, produk terlaris).
-Menunjukkan: data quality gate (fail-fast), dimensional modeling, unit testing.
-
-### 2. [Crypto Price Incremental Pipeline](./02-crypto-incremental-pipeline)
-Pipeline yang menarik data dari **REST API publik**, memprosesnya secara
-**incremental** memakai watermark (bukan full reload), menghitung metrik
-turunan (moving average, % perubahan), dan menampilkannya di **dashboard
-Streamlit**. Menunjukkan: integrasi API, append-only raw layer, incremental
-processing, idempotent write.
-
-### 3. [Web Server Log Analytics Pipeline](./03-log-analytics-pipeline)
-Pipeline untuk parsing **data teks tidak terstruktur** (log server ala
-Nginx/Apache) dengan regex, tahan terhadap baris korup (tolerant parsing,
-bukan fail-fast), dan **dashboard Streamlit yang bisa langsung memproses
-file log yang di-upload user**. Menunjukkan: schema-on-read, data quality
-observability (success rate parsing per run), deteksi pola anomali sederhana.
-
-### 4. [Subscription Analytics — dbt + DuckDB](./04-dbt-analytics-engineering)
-Project analytics engineering yang mengubah data subscription menjadi data
-mart bisnis menggunakan **dbt** dan **DuckDB**. Model staging dan marts
-menghasilkan MRR dengan pola date spine, status customer, total pembayaran,
-serta dilengkapi dbt tests dan dokumentasi model. Dashboard Streamlit
-menampilkan MRR, active subscribers, churn, dan plan economics.
-
-Menunjukkan: SQL modular, Jinja templating, dimensional modeling, data tests,
-documentation-driven development, dan analytics-ready marts.
-
-### 5. [Multi-City Weather ETL — Prefect](./05-prefect-weather-pipeline)
-Pipeline yang mengambil data cuaca dari Open-Meteo untuk beberapa kota dengan
-**Prefect**. Setiap task punya retry policy, kota yang gagal tidak menghentikan
-kota lain, dan setiap run dicatat ke tabel observability. Dashboard Streamlit
-menampilkan kondisi kota, tren suhu, status run, dan partial failure.
-
-Menunjukkan: orchestration, retries, parallel execution, partial-failure
-tolerance, pipeline health tracking, dan API integration.
-
-## Tech stack (sengaja ringan)
-- **Python** (pandas, requests)
-- **SQLite** untuk warehouse dan observability pipeline
-- **DuckDB + dbt** untuk analytics engineering dan data marts
-- **Prefect** untuk orchestration, retries, dan flow monitoring
-- **Streamlit** untuk dashboard setiap project
-- **pytest** untuk unit testing
-
-## Deployment dashboard
-
-Semua dashboard dapat dideploy sebagai app terpisah di Streamlit Cloud dari
-repository GitHub yang sama. Gunakan `main` sebagai branch dan pilih entrypoint
-berikut pada field **Main file path**:
-
-```text
-01-ecommerce-etl-pipeline/dashboard/app.py
-02-crypto-incremental-pipeline/dashboard/app.py
-03-log-analytics-pipeline/dashboard/app.py
-04-dbt-analytics-engineering/dashboard/app.py
-05-prefect-weather-pipeline/dashboard/app.py
 ```
 
-## Cara pakai portofolio ini
-Semua project berada dalam satu repository mono-repo. Setiap folder memiliki
-README dan dependency sendiri sehingga bisa dijalankan atau dideploy secara
-terpisah.
+# 🗄️ Enterprise Data & Analytics Engineering Lab
 
-## Catatan untuk lamaran kerja
-Di CV/portofolio, sertakan link ke masing-masing repo + 1-2 kalimat tentang
-masalah apa yang diselesaikan (bukan cuma "bikin pipeline ETL") — misalnya:
-"Merancang pipeline ETL dengan data quality gate yang mencegah data kotor
-masuk ke warehouse" lebih kuat daripada sekadar "membuat script Python".
+**Production-grade data pipelines built with robust architecture, data quality gates, incremental loading, and workflow orchestration.**
+
+---
+
+> ⚡ **Dynamic Repository Notice:** Repository ini merupakan *living engineering lab*. Modul baru, pengujian arsitektur *cloud-native*, serta otomatisasi pipeline tingkat lanjut akan terus di-commit secara berkala seiring berjalannya riset dan pengembangan.
+
+---
+
+## ⚡ Technical Matrix & Complexity Level
+
+| Module | Core Paradigm | Complexity / Target Level | Storage Layer | Compute / Orchestration | Quality Assurance |
+| --- | --- | --- | --- | --- | --- |
+| **01. E-Commerce** | Batch ETL & Dimensional Modeling | `MID-LEVEL` | SQLite (OLTP) | Python (Pandas) | Fail-fast Assertions (`pytest`) |
+| **02. Crypto Ingestion** | Incremental Loading & Watermarking | `MID TO HIGH` | SQLite | REST API Polling | Idempotency Key Checks |
+| **03. Log Analytics** | Unstructured Parsing & Observability | `MID TO HIGH` | SQLite | RegEx Engine | Quarantine Rate Monitoring |
+| **04. Subscription Mart** | Analytics Engineering & Date-Spine | `HIGH (ADVANCED)` | DuckDB (OLAP) | dbt Core | `dbt test` (Schema & Unique) |
+| **05. Weather ETL** | Distributed Extraction & Fault Isolation | `HIGH (ADVANCED)` | SQLite | Prefect Core | Task-level Retries |
+
+---
+
+## 🏗️ System Architecture & Deep Dives
+
+### 01. 🛒 E-Commerce Sales Batch Pipeline
+
+* **Target Level:** `MID-LEVEL`
+* **Focus:** Data Quality Gate, Star Schema, Unit Testing
+
+```
+  ┌────────────┐     ┌──────────────────────┐     ┌────────────────────────┐     ┌─────────────────┐
+  │  Raw Data  │ ──► │ Pandas Quality Gate  │ ──► │  Star Schema Modeler   │ ──► │ SQLite Storage  │
+  │ (Dirty CSV)│     │  (Error Threshold)   │     │ (Fact & Dim Tables)    │     │  (Streamlit BI) │
+  └────────────┘     └──────────────────────┘     └────────────────────────┘     └─────────────────┘
+
+```
+
+#### Engineering Highlights:
+
+* **Quality Gate Formula:** Pipeline akan menghentikan eksekusi secara otomatis (*fail-fast*) jika tingkat anomali data melampaui batas ambang:
+
+$$\text{Error Rate} = \frac{N_{\text{invalid}}}{N_{\text{total}}} > 0.05$$
+
+* **Data Modeling:** Konversi data mentah menjadi **Dimensional Modeling** berstandar industri: `fact_sales`, `dim_customers`, `dim_products`, dan `dim_dates`.
+
+📁 `cd 01-ecommerce-etl-pipeline`
+
+---
+
+### 02. 📈 Crypto Price Incremental Engine
+
+* **Target Level:** `MID TO HIGH`
+* **Focus:** State-driven Extraction, Watermarking, Idempotent Ingestion
+
+```
+  ┌────────────────┐     ┌─────────────────────┐     ┌──────────────────────┐
+  │ CoinGecko API  │ ──► │ Watermark Extractor │ ──► │ Append-Only Storage  │
+  │ (REST Endpt)   │     │ (State: last_tstamp)│     │  (Idempotent Write)  │
+  └────────────────┘     └─────────────────────┘     └──────────────────────┘
+
+```
+
+#### Engineering Highlights:
+
+* **State Management:** Memanfaatkan teknik *watermarking* berbasis timestamp `T_{last}` untuk mengeliminasi ekstraksi data ganda:
+
+$$\text{Query Filter:} \quad \text{timestamp} > T_{\text{last}}$$
+
+* **Idempotency Execution:** Menjamin integritas data menggunakan constraint `UNIQUE(coin_id, timestamp)` pada level database agar transaksi yang sama tidak terisi ganda meskipun pipeline dijalankan secara repetitif.
+
+📁 `cd 02-crypto-incremental-pipeline`
+
+---
+
+### 03. 📄 Web Log Stream Parser & Observability
+
+* **Target Level:** `MID TO HIGH`
+* **Focus:** Schema-on-Read, Fault-Tolerant Parsing, Anomaly Detection
+
+```
+  ┌─────────────────┐     ┌───────────────────┐     ├─► Valid Log ──► Metrics Table
+  │ Unstructured    │ ──► │ RegEx Parser      │ ────┤
+  │ Web Log (.log)  │     │ (Try-Catch Block) │     └─► Malformed ──► Dead Letter Queue
+  └─────────────────┘     └───────────────────┘
+
+```
+
+#### Engineering Highlights:
+
+* **Resilient Ingestion:** Parsing string log heterogen menggunakan ekspresi reguler yang terenkapsulasi, mencegah *catastrophic failure* saat menemukan payload rusak.
+* **Pipeline Observability:** Pemantauan indikator kesehatan pipeline secara kuantitatif:
+
+$$\text{Parsing Success Rate} = \left( 1 - \frac{N_{\text{quarantine}}}{N_{\text{processed}}} \right) \times 100\%$$
+
+📁 `cd 03-log-analytics-pipeline`
+
+---
+
+### 04. 💳 Subscription Analytics (dbt + DuckDB)
+
+* **Target Level:** `HIGH (ADVANCED)`
+* **Focus:** Analytics Engineering, Modular SQL, Date Spine Modeling
+
+```
+  ┌───────────────┐     ┌─────────────────┐     ┌─────────────────┐     ┌────────────────┐
+  │ Raw Source    │ ──► │ dbt Staging     │ ──► │ Intermediate    │ ──► │ Data Marts     │
+  │ (DuckDB OLAP) │     │ (Renaming/Cast) │     │ (Date-Spine Logic)    │ (fct_mrr/users)│
+  └───────────────┘     └─────────────────┘     └─────────────────┘     └────────────────┘
+
+```
+
+#### Engineering Highlights:
+
+* **SaaS Metric Computation:** Membangun kalkulasi *Monthly Recurring Revenue* (MRR) dan *Churn Rate* menggunakan teknik *Date-Spine* untuk menangani kesenjangan tanggal (*date gaps*).
+* **Automated Data Contracts:** Menjalankan `dbt test` untuk validasi keunikan entitas, integritas *foreign key*, dan kendala *not-null*.
+
+📁 `cd 04-dbt-analytics-engineering`
+
+---
+
+### 05. ⛅ Multi-City Weather Pipeline (Prefect Orchestrated)
+
+* **Target Level:** `HIGH (ADVANCED)`
+* **Focus:** DAG Orchestration, Distributed Retries, Partial-Failure Isolation
+
+```
+           ┌──► Task: City A ──► Retry Policy (3x) ──► Load DB
+  Flow DAG ┼──► Task: City B ──► Fail & Log Quarantine 
+           └──► Task: City C ──► Retry Policy (3x) ──► Load DB
+
+```
+
+#### Engineering Highlights:
+
+* **Workflow Orchestration:** Mengatur *execution graph* berbasis DAG menggunakan **Prefect**, lengkap dengan otomatisasi *exponential backoff retries*.
+* **Fault Isolation:** Kegagalan ekstraksi pada satu node/wilayah tidak menggagalkan seluruh alur data, melainkan diisolasi ke *audit trail table*.
+
+📁 `cd 05-prefect-weather-pipeline`
+
+---
+
+## 💻 Local Developer Guide
+
+### 1. Environment Setup
+
+```bash
+# Clone the repository
+git clone [https://github.com/your-username/data-engineering-portfolio.git](https://github.com/your-username/data-engineering-portfolio.git)
+cd data-engineering-portfolio
+
+# Initialize Virtual Environment
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+
+# Install Core Dependencies
+pip install -r requirements.txt
+
+```
+
+### 2. Execution Examples
+
+```bash
+# Execute Unit Tests across Pipelines
+pytest
+
+# Launch Specific Analytics Dashboard
+streamlit run 04-dbt-analytics-engineering/dashboard/app.py
+
+```
+
+---
+
+## 🌐 Streamlit Deployment Index
+
+| Module | Deployment Main File Path |
+| --- | --- |
+| **01. E-Commerce Pipeline** | `01-ecommerce-etl-pipeline/dashboard/app.py` |
+| **02. Crypto Ingestion** | `02-crypto-incremental-pipeline/dashboard/app.py` |
+| **03. Log Analytics** | `03-log-analytics-pipeline/dashboard/app.py` |
+| **04. dbt Subscription** | `04-dbt-analytics-engineering/dashboard/app.py` |
+| **05. Prefect Weather** | `05-prefect-weather-pipeline/dashboard/app.py` |
+
+```
+
+```
