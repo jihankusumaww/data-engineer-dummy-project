@@ -68,6 +68,18 @@ def ensure_dbt_marts() -> None:
                 raise RuntimeError(result.stdout[-1200:] or result.stderr[-1200:])
 
 
+def relation_schema(connection: duckdb.DuckDBPyConnection, relation: str) -> str:
+    schemas = connection.execute(
+        """SELECT table_schema FROM information_schema.tables
+           WHERE table_name = ? ORDER BY table_schema""",
+        [relation],
+    ).fetchall()
+    for schema_name, in schemas:
+        if schema_name not in {"main", "information_schema", "pg_catalog"}:
+            return schema_name
+    raise RuntimeError(f"dbt model tidak ditemukan: {relation}")
+
+
 try:
     ensure_dbt_marts()
 except Exception as error:
@@ -83,9 +95,10 @@ if not DB_PATH.exists():
     st.stop()
 
 con = duckdb.connect(str(DB_PATH), read_only=True)
-mrr = con.execute("SELECT * FROM marts.fct_mrr ORDER BY month_start").fetchdf()
-customers = con.execute("SELECT * FROM marts.dim_customers").fetchdf()
-subscriptions = con.execute("SELECT * FROM marts.fct_subscriptions").fetchdf()
+mart_schema = relation_schema(con, "fct_mrr")
+mrr = con.execute(f'SELECT * FROM "{mart_schema}"."fct_mrr" ORDER BY month_start').fetchdf()
+customers = con.execute(f'SELECT * FROM "{mart_schema}"."dim_customers"').fetchdf()
+subscriptions = con.execute(f'SELECT * FROM "{mart_schema}"."fct_subscriptions"').fetchdf()
 con.close()
 
 latest_month = mrr["month_start"].max()
