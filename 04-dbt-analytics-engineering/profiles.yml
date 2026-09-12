@@ -1,0 +1,19 @@
+subscription_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: 'subscription_analytics.duckdb'
+      threads: 4
+
+# Catatan: file ini biasanya ditaruh di ~/.dbt/profiles.yml, tapi supaya
+# project ini "self-contained" dan gampang dijalankan siapa saja, kita taruh
+# di root project dan arahkan dbt ke sini pakai environment variable:
+#
+#   export DBT_PROFILES_DIR=$(pwd)      # Mac/Linux
+#   set DBT_PROFILES_DIR=%cd%           # Windows cmd
+#
+# DuckDB dipilih karena embedded (mirip SQLite tapi dioptimasi untuk analitik/
+# OLAP), tidak perlu server terpisah, tapi punya performa jauh lebih baik
+# untuk query agregasi dibanding SQLite -- pilihan populer untuk "modern data
+# stack" skala kecil-menengah.

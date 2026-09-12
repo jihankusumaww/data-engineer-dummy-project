@@ -1,0 +1,31 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: "Satu baris per customer, diperkaya dengan subscription plan & status terkini."
+    columns:
+      - name: customer_id
+        tests:
+          - unique
+          - not_null
+
+  - name: fct_subscriptions
+    description: "Satu baris per subscription dengan durasi dan total pembayaran (fact table)."
+    columns:
+      - name: subscription_id
+        tests:
+          - unique
+          - not_null
+      - name: total_paid_usd
+        tests:
+          - not_null
+
+  - name: fct_mrr
+    description: >
+      Monthly Recurring Revenue per plan per bulan, dihitung dengan pola
+      date-spine supaya bulan tanpa event baru tetap terhitung MRR-nya
+      dari subscription yang masih berjalan.
+    columns:
+      - name: mrr_usd
+        tests:
+          - not_null

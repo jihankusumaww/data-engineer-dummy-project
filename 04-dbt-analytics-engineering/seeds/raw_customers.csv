@@ -1,0 +1,11 @@
+customer_id,customer_name,email,signup_date,country
+1,Andi Wijaya,andi.w@mail.com,2023-01-15,Indonesia
+2,Siti Rahma,siti.r@mail.com,2023-02-03,Indonesia
+3,John Smith,john.s@mail.com,2023-02-20,USA
+4,Maria Garcia,maria.g@mail.com,2023-03-05,Spain
+5,Budi Santoso,budi.s@mail.com,2023-03-18,Indonesia
+6,Li Wei,li.w@mail.com,2023-04-02,Singapore
+7,Emma Watson,emma.w@mail.com,2023-04-25,UK
+8,Rina Kartika,rina.k@mail.com,2023-05-10,Indonesia
+9,David Lee,david.l@mail.com,2023-06-01,Singapore
+10,Sophia Muller,sophia.m@mail.com,2023-06-15,Germany

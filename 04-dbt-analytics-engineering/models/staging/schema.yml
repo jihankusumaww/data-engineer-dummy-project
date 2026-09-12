@@ -1,0 +1,50 @@
+version: 2
+
+models:
+  - name: stg_customers
+    description: "Satu baris per customer, sudah dibersihkan (trim, lowercase email, cast tipe data)."
+    columns:
+      - name: customer_id
+        description: "Primary key customer."
+        tests:
+          - unique
+          - not_null
+      - name: email
+        tests:
+          - not_null
+
+  - name: stg_subscriptions
+    description: "Satu baris per subscription. end_date null berarti subscription masih aktif."
+    columns:
+      - name: subscription_id
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+      - name: status
+        tests:
+          - accepted_values:
+              values: ['active', 'canceled', 'trial']
+
+  - name: stg_payments
+    description: "Satu baris per transaksi pembayaran."
+    columns:
+      - name: payment_id
+        tests:
+          - unique
+          - not_null
+      - name: subscription_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_subscriptions')
+              field: subscription_id
+      - name: payment_status
+        tests:
+          - accepted_values:
+              values: ['success', 'failed', 'refunded']
