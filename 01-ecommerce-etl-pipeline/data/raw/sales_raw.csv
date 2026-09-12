@@ -1,0 +1,22 @@
+order_id,order_date,customer_name,customer_email,product_name,category,quantity,unit_price,city
+1001,2024-01-05,Budi Santoso,budi.s@mail.com,Kaos Polos,Fashion,2,75000,Jakarta
+1002,05/01/2024,Siti Aminah,siti.a@mail.com, Celana Jeans ,Fashion,1,250000,Bandung
+1003,2024-01-06,Andi Wijaya,andi.w@mail.com,Sepatu Sneakers,Fashion,1,450000,Surabaya
+1004,2024-01-06,Budi Santoso,budi.s@mail.com,Kaos Polos,Fashion,2,75000,Jakarta
+1005,2024-01-07,Rina Kartika,rina.k@mail.com,Blender Mini,Elektronik,1,320000,Semarang
+1006,2024-01-07,,dewi.p@mail.com,Rice Cooker,Elektronik,1,410000,Yogyakarta
+1007,2024-01-08,Joko Prasetyo,joko.p@mail.com,Kaos Polos,Fashion,3,75000,Jakarta
+1008,08/01/2024,Maya Sari,maya.s@mail.com,Tas Ransel,Fashion,1,180000,Medan
+1009,2024-01-09,Andi Wijaya,andi.w@mail.com,Sepatu Sneakers,Fashion,,450000,Surabaya
+1010,2024-01-09,Rudi Hartono,rudi.h@mail.com,Kipas Angin,Elektronik,2,150000,Semarang
+1011,2024-01-10,Lestari Wulan,lestari.w@mail.com,Kaos Polos,Fashion,1,75000,Jakarta
+1012,2024-01-10,Fajar Nugroho,fajar.n@mail.com,Blender Mini,Elektronik,1,320000,Bandung
+1013,2024-01-11,Rina Kartika,rina.k@mail.com,Rice Cooker,Elektronik,1,410000,Semarang
+1014,11/01/2024,Dewi Puspita,dewi.p@mail.com,Kipas Angin,Elektronik,1,150000,Yogyakarta
+1015,2024-01-12,Budi Santoso,budi.s@mail.com,Tas Ransel,Fashion,2,180000,Jakarta
+1016,2024-01-12,Maya Sari,maya.s@mail.com,Sepatu Sneakers,Fashion,1,450000,Medan
+1017,2024-01-13,Joko Prasetyo,joko.p@mail.com,Celana Jeans,Fashion,1,250000,Jakarta
+1018,2024-01-13,Rudi Hartono,rudi.h@mail.com,Blender Mini,Elektronik,1,320000,Semarang
+1019,2024-01-14,Lestari Wulan,lestari.w@mail.com,Rice Cooker,Elektronik,1,410000,Jakarta
+1020,2024-01-14,Fajar Nugroho,fajar.n@mail.com,Kaos Polos,Fashion,4,75000,Bandung
+1004,2024-01-06,Budi Santoso,budi.s@mail.com,Kaos Polos,Fashion,2,75000,Jakarta

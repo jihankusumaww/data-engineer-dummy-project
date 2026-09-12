@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+venv/
+.venv/
+data/crypto.db
+.pytest_cache/
