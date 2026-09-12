@@ -1,7 +1,3 @@
-```markdown
-
-```
-
 # 🗄️ Enterprise Data & Analytics Engineering Lab
 
 **Production-grade data pipelines built with robust architecture, data quality gates, incremental loading, and workflow orchestration.**
