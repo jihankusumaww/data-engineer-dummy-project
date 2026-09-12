@@ -166,9 +166,20 @@ display_df = coin_df.rename(columns={
     "coin_id": "Coin", "price_usd": "Price (USD)", "market_cap_usd": "Market cap (USD)",
     "fetched_at_utc": "Fetched at", "moving_avg_3": "Moving avg 3", "pct_change_from_prev": "Change (%)",
 }).copy()
+numeric_columns = ["Price (USD)", "Market cap (USD)", "Moving avg 3", "Change (%)"]
+for column in numeric_columns:
+    display_df[column] = pd.to_numeric(display_df[column], errors="coerce")
 display_df["Fetched at"] = display_df["Fetched at"].dt.strftime("%Y-%m-%d %H:%M:%S UTC")
 st.dataframe(
-    display_df.style.format({"Price (USD)": "${:,.2f}", "Market cap (USD)": "${:,.0f}", "Moving avg 3": "${:,.2f}", "Change (%)": "{:+.2f}%"}),
+    display_df.style.format(
+        {
+            "Price (USD)": "${:,.2f}",
+            "Market cap (USD)": "${:,.0f}",
+            "Moving avg 3": "${:,.2f}",
+            "Change (%)": "{:+.2f}%",
+        },
+        na_rep="N/A",
+    ),
     use_container_width=True,
     hide_index=True,
 )
