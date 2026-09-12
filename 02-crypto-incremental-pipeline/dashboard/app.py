@@ -1,11 +1,13 @@
 """Dashboard visual untuk data hasil crypto incremental pipeline."""
 import sqlite3
+import sys
 from pathlib import Path
 
 import pandas as pd
 import streamlit as st
 
 DB_PATH = Path(__file__).resolve().parent.parent / "data" / "crypto.db"
+SRC_PATH = Path(__file__).resolve().parent.parent / "src"
 
 st.set_page_config(
     page_title="Crypto Pulse | Incremental Pipeline",
@@ -75,14 +77,29 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+
+def ensure_snapshot() -> None:
+    """Create the first incremental snapshot when the app has no local DB."""
+    if DB_PATH.exists():
+        return
+
+    sys.path.insert(0, str(SRC_PATH))
+    from pipeline import main as run_pipeline
+
+    with st.spinner("Mengambil snapshot crypto pertama dari CoinGecko..."):
+        run_pipeline()
+
+
+try:
+    ensure_snapshot()
+except Exception as error:
+    st.error(f"Snapshot crypto gagal dibuat: {error}")
+    st.info("CoinGecko mungkin sedang membatasi request. Refresh beberapa saat lagi.")
+    st.stop()
+
 st.markdown('<div class="eyebrow">Incremental market monitor / live warehouse view</div>', unsafe_allow_html=True)
 st.title("Crypto Pulse")
 st.markdown('<p class="subtitle">Snapshot harga dari pipeline append-only, diperkaya moving average dan perubahan antar-run.</p>', unsafe_allow_html=True)
-
-if not DB_PATH.exists():
-    st.warning("Database belum ada. Jalankan `python src/pipeline.py` dulu minimal beberapa kali "
-               "(idealnya dengan jeda) supaya ada data untuk divisualisasikan.")
-    st.stop()
 
 conn = sqlite3.connect(DB_PATH)
 df = pd.read_sql("SELECT * FROM fact_price_hourly ORDER BY fetched_at_utc", conn)
