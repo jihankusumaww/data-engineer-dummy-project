@@ -1,10 +1,12 @@
 import sqlite3
+import sys
 from pathlib import Path
 
 import pandas as pd
 import streamlit as st
 
 DB_PATH = Path(__file__).resolve().parent.parent / "data" / "warehouse.db"
+SRC_PATH = Path(__file__).resolve().parent.parent / "src"
 
 st.set_page_config(
     page_title="Commerce Desk | Sales Warehouse",
@@ -72,13 +74,32 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+
+def ensure_warehouse() -> None:
+    """Build the local warehouse on first launch, including Streamlit Cloud."""
+    if DB_PATH.exists():
+        return
+
+    sys.path.insert(0, str(SRC_PATH))
+    from extract import extract_sales_data
+    from load import load_to_warehouse
+    from transform import clean_sales_data, run_quality_checks
+
+    raw_df = extract_sales_data()
+    clean_df = clean_sales_data(raw_df)
+    run_quality_checks(clean_df)
+    load_to_warehouse(clean_df)
+
+
+try:
+    ensure_warehouse()
+except Exception as error:
+    st.error(f"Warehouse gagal dibuat: {error}")
+    st.stop()
+
 st.markdown('<div class="eyebrow">Sales intelligence / warehouse overview</div>', unsafe_allow_html=True)
 st.title("Commerce Desk")
 st.markdown('<p class="subtitle">A compact view of revenue performance, product demand, and customer value.</p>', unsafe_allow_html=True)
-
-if not DB_PATH.exists():
-    st.warning("Database belum ada. Jalankan `python src/run_pipeline.py` dulu dari root project ini.")
-    st.stop()
 
 conn = sqlite3.connect(DB_PATH)
 
