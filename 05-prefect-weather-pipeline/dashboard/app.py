@@ -49,10 +49,10 @@ def ensure_weather_data() -> None:
     if DB_PATH.exists():
         return
 
-    from flows import weather_etl_flow
+    from flows import DEFAULT_CITIES, weather_etl_flow
 
     with st.spinner("Running the first multi-city weather flow..."):
-        weather_etl_flow()
+        weather_etl_flow(cities=DEFAULT_CITIES)
 
 
 try:

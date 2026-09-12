@@ -23,6 +23,7 @@ import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Optional
 
 import requests
 from prefect import flow, task, get_run_logger
@@ -75,7 +76,7 @@ def load_weather_reading(record: dict) -> None:
 
 
 @flow(name="multi-city-weather-etl", log_prints=True)
-def weather_etl_flow(cities: list[dict] = None):
+def weather_etl_flow(cities: Optional[list[dict]] = None):
     """
     Flow utama: fetch cuaca untuk semua kota SECARA PARALEL (pakai
     .submit(), bukan loop biasa), lalu load satu-satu. Kalau satu kota
