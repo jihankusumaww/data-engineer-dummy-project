@@ -43,7 +43,19 @@ st.markdown(
 
 def ensure_dbt_marts() -> None:
     if DB_PATH.exists():
-        return
+        existing = duckdb.connect(str(DB_PATH), read_only=True)
+        model_exists = existing.execute(
+            """SELECT 1 FROM information_schema.tables
+               WHERE table_name = 'fct_mrr'
+               UNION ALL
+               SELECT 1 FROM information_schema.views
+               WHERE table_name = 'fct_mrr'
+               LIMIT 1"""
+        ).fetchone()
+        existing.close()
+        if model_exists:
+            return
+        DB_PATH.unlink()
 
     environment = os.environ.copy()
     environment["DBT_PROFILES_DIR"] = str(PROJECT_PATH)
@@ -51,8 +63,8 @@ def ensure_dbt_marts() -> None:
     if not Path(dbt_command).exists() and shutil.which("dbt") is None:
         raise RuntimeError("dbt CLI tidak ditemukan. Pastikan dbt-core terpasang.")
     commands = [
-        [dbt_command, "seed", "--profiles-dir", str(PROJECT_PATH)],
-        [dbt_command, "run", "--profiles-dir", str(PROJECT_PATH)],
+        [dbt_command, "seed", "--full-refresh", "--profiles-dir", str(PROJECT_PATH)],
+        [dbt_command, "run", "--full-refresh", "--profiles-dir", str(PROJECT_PATH)],
     ]
     with st.spinner("Building subscription marts with dbt..."):
         for command in commands:
@@ -71,8 +83,12 @@ def ensure_dbt_marts() -> None:
 def relation_schema(connection: duckdb.DuckDBPyConnection, relation: str) -> str:
     schemas = connection.execute(
         """SELECT table_schema FROM information_schema.tables
-           WHERE table_name = ? ORDER BY table_schema""",
-        [relation],
+           WHERE table_name = ?
+           UNION
+           SELECT table_schema FROM information_schema.views
+           WHERE table_name = ?
+           ORDER BY table_schema""",
+        [relation, relation],
     ).fetchall()
     for schema_name, in schemas:
         if schema_name not in {"main", "information_schema", "pg_catalog"}:
