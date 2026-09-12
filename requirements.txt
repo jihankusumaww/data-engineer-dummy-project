@@ -2,5 +2,7 @@ dbt-core>=1.7.0
 dbt-duckdb>=1.7.0
 duckdb>=0.9.0
 pandas>=2.0.0
+prefect>=2.14.0
+pytest>=7.4.0
 requests>=2.31.0
 streamlit>=1.28.0

@@ -10,6 +10,6 @@ select
     customer_id::integer          as customer_id,
     trim(customer_name)           as customer_name,
     lower(trim(email))            as email,
-    try_cast(nullif(trim(signup_date), '') as date) as signup_date,
+    try_cast(nullif(trim(cast(signup_date as varchar)), '') as date) as signup_date,
     country                       as country
 from source
