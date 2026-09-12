@@ -1,5 +1,6 @@
 """Subscription analytics dashboard for dbt marts in DuckDB."""
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -46,9 +47,12 @@ def ensure_dbt_marts() -> None:
 
     environment = os.environ.copy()
     environment["DBT_PROFILES_DIR"] = str(PROJECT_PATH)
+    dbt_command = shutil.which("dbt") or str(Path(sys.executable).with_name("dbt"))
+    if not Path(dbt_command).exists() and shutil.which("dbt") is None:
+        raise RuntimeError("dbt CLI tidak ditemukan. Pastikan dbt-core terpasang.")
     commands = [
-        [sys.executable, "-m", "dbt", "seed", "--profiles-dir", str(PROJECT_PATH)],
-        [sys.executable, "-m", "dbt", "run", "--profiles-dir", str(PROJECT_PATH)],
+        [dbt_command, "seed", "--profiles-dir", str(PROJECT_PATH)],
+        [dbt_command, "run", "--profiles-dir", str(PROJECT_PATH)],
     ]
     with st.spinner("Building subscription marts with dbt..."):
         for command in commands:
