@@ -43,8 +43,27 @@ st.markdown('<div class="eyebrow">Orchestration monitor / multi-city weather</di
 st.title("Signal Weather")
 st.markdown('<p class="subtitle">Current conditions and Prefect run health across the monitored cities.</p>', unsafe_allow_html=True)
 
+
+def ensure_weather_data() -> None:
+    """Run one Prefect flow on first launch when the SQLite DB is absent."""
+    if DB_PATH.exists():
+        return
+
+    from flows import weather_etl_flow
+
+    with st.spinner("Running the first multi-city weather flow..."):
+        weather_etl_flow()
+
+
+try:
+    ensure_weather_data()
+except Exception as error:
+    st.error(f"Weather flow gagal dibuat: {error}")
+    st.info("Open-Meteo mungkin sedang tidak tersedia. Coba refresh beberapa saat lagi.")
+    st.stop()
+
 if not DB_PATH.exists():
-    st.warning("Database belum ada. Jalankan `python src/flows.py` dulu dari root project ini.")
+    st.warning("Database belum berhasil dibuat oleh Prefect flow.")
     st.stop()
 
 conn = sqlite3.connect(DB_PATH)
