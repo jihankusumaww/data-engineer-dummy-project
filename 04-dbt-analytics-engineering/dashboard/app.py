@@ -1,4 +1,7 @@
 """Subscription analytics dashboard for dbt marts in DuckDB."""
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 import duckdb
@@ -6,6 +9,7 @@ import pandas as pd
 import streamlit as st
 
 DB_PATH = Path(__file__).resolve().parent.parent / "subscription_analytics.duckdb"
+PROJECT_PATH = DB_PATH.parent
 
 st.set_page_config(
     page_title="Revenue Room | Subscription Analytics",
@@ -34,6 +38,37 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
+
+def ensure_dbt_marts() -> None:
+    if DB_PATH.exists():
+        return
+
+    environment = os.environ.copy()
+    environment["DBT_PROFILES_DIR"] = str(PROJECT_PATH)
+    commands = [
+        [sys.executable, "-m", "dbt", "seed", "--profiles-dir", str(PROJECT_PATH)],
+        [sys.executable, "-m", "dbt", "run", "--profiles-dir", str(PROJECT_PATH)],
+    ]
+    with st.spinner("Building subscription marts with dbt..."):
+        for command in commands:
+            result = subprocess.run(
+                command,
+                cwd=PROJECT_PATH,
+                env=environment,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if result.returncode != 0:
+                raise RuntimeError(result.stdout[-1200:] or result.stderr[-1200:])
+
+
+try:
+    ensure_dbt_marts()
+except Exception as error:
+    st.error(f"dbt marts gagal dibuat: {error}")
+    st.stop()
 
 st.markdown('<div class="eyebrow">Analytics engineering / recurring revenue</div>', unsafe_allow_html=True)
 st.title("Revenue Room")
